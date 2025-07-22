@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: workout-feedback
+    runtime: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python feedback_app.py"
+    envVars:
+      - key: NOTION_API_KEY
+        fromEnvVar: NOTION_API_KEY
+      - key: NOTION_DB_ID
+        fromEnvVar: NOTION_DB_ID
+      - key: FEEDBACK_URL_BASE
+        fromEnvVar: FEEDBACK_URL_BASE

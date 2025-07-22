@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Workout Feedback</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 550px;
+            margin: 40px auto;
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 20px;
+        }
+        input[type=submit] {
+            margin-top: 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .mood-btn, .status-btn {
+            border-radius: 5px;
+            padding: 6px 12px;
+            background: white;
+            cursor: pointer;
+            border: 2px solid transparent;
+            color: black;
+        }
+        .mood-btn.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        /* Status button border colors */
+        .status-btn[data-status="Completed"] { border-color: #2ecc71; }
+        .status-btn[data-status="Skipped"] { border-color: #e74c3c; }
+        .status-btn[data-status="Rescheduled"] { border-color: #f39c12; }
+
+        /* Status button active fill */
+        .status-btn.active[data-status="Completed"] {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .status-btn.active[data-status="Skipped"] {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .status-btn.active[data-status="Rescheduled"] {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        input[type=range] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>🏋️ Workout Feedback</h2>
+    <form method="post">
+        <input type="hidden" name="video_id" value="{{ video_id }}">
+        <input type="hidden" name="mood" id="mood-input">
+        <input type="hidden" name="status" id="status-input" value="Completed">
+
+        <!-- Mood Buttons -->
+        <label>Mood (select one or more):</label>
+        <div class="btn-group" id="mood-buttons">
+            {% for mood in [
+                "Frustrated", "Tired", "Disappointed", "Motivated", "Neutral", "Pumped",
+                "Proud", "Focused", "Unmotivated", "Calm", "Anxious", "Ecstatic",
+                "Lazy", "Stressed", "Grateful"
+            ] %}
+            <button type="button" class="mood-btn" data-mood="{{ mood }}">{{ mood }}</button>
+            {% endfor %}
+        </div>
+
+        <!-- Status Buttons -->
+        <label>Status:</label>
+        <div class="btn-group" id="status-buttons">
+            <button type="button" class="status-btn active" data-status="Completed">Completed</button>
+            <button type="button" class="status-btn" data-status="Skipped">Skipped</button>
+            <button type="button" class="status-btn" data-status="Rescheduled">Rescheduled</button>
+        </div>
+
+        <!-- Effort & Energy -->
+        <div id="effort-energy-section">
+            <label>Effort (1 = Too Easy, 10 = Maximum!)</label>
+            <input type="range" name="effort" id="effort" min="1" max="10" value="5" oninput="document.getElementById('effortVal').textContent = this.value">
+            <output id="effortVal">5</output>
+
+            <label>Energy (1 = Drained, 10 = Pumped AF!)</label>
+            <input type="range" name="energy" id="energy" min="1" max="10" value="5" oninput="document.getElementById('energyVal').textContent = this.value">
+            <output id="energyVal">5</output>
+        </div>
+
+        <!-- Notes -->
+        <label>📝 Notes (optional)</label>
+        <textarea name="note" rows="4" style="width: 100%; padding: 8px;"></textarea>
+
+        <input type="submit" value="Submit Feedback">
+    </form>
+
+    <script>
+        // Mood toggle logic
+        const selectedMoods = new Set();
+        const moodInput = document.getElementById("mood-input");
+        document.querySelectorAll(".mood-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const mood = btn.dataset.mood;
+                btn.classList.toggle("active");
+                if (selectedMoods.has(mood)) {
+                    selectedMoods.delete(mood);
+                } else {
+                    selectedMoods.add(mood);
+                }
+                moodInput.value = Array.from(selectedMoods).join(",");
+            });
+        });
+
+        // Status selection
+        const statusButtons = document.querySelectorAll(".status-btn");
+        const statusInput = document.getElementById("status-input");
+        const effortEnergySection = document.getElementById("effort-energy-section");
+
+        statusButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                // Clear others
+                statusButtons.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                statusInput.value = btn.dataset.status;
+
+                // Toggle sliders
+                effortEnergySection.style.display = (btn.dataset.status === "Completed") ? "block" : "none";
+            });
+        });
+
+        // Initial slider visibility based on default
+        if (statusInput.value !== "Completed") {
+            effortEnergySection.style.display = "none";
+        }
+    </script>
+</body>
+</html>

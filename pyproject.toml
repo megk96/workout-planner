@@ -1,0 +1,21 @@
+[project]
+name = "workout-planner"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11,<4"
+dependencies = [
+    "yt-dlp (>=2025.6.30,<2026.0.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "flask (>=3.1.1,<4.0.0)",
+    "notion-client (>=2.4.0,<3.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -19,22 +19,28 @@ def update_feedback(video_id, feedback):
     workout = workout_map.get(video_id)
 
     if not workout:
-        print("❌ Workout not found in local JSON")
+        print(f"❌ Workout {video_id} not found in local JSON")
         raise ValueError("Workout not found")
 
     properties = {
         "Name": {"title": [{"text": {"content": workout["title"]}}]},
         "Date": {"date": {"start": datetime.today().isoformat()}},
-        "Type": {"select": {"name": workout["type"]}},
         "Duration": {"number": workout["duration"]},
         "URL": {"url": workout["youtube_url"]},
-        "Summary":  {"rich_text": [{"text": {"content": workout["description"]}}]},
-        "Effort Level": {"number": int(feedback["effort"])},
-        "Energy Level": {"number": int(feedback["energy"])},
+        "Summary": {"rich_text": [{"text": {"content": workout["description"]}}]},
         "Status": {"select": {"name": feedback["status"]}},
-        "Mood": {"multi_select": [{"name": m} for m in feedback["mood"]]},
     }
-    if feedback["note"]:
+
+    if feedback["status"] == "Completed":
+        properties.update({
+            "Effort Level": {"number": feedback["effort"]},
+            "Effectiveness": {"number": feedback["effectiveness"]},
+            "Mood": {"multi_select": [{"name": m} for m in feedback.get("mood", [])]},
+            "Type": {"multi_select": [{"name": t} for t in feedback.get("types", [])]},
+            "Muscles Weak": {"multi_select": [{"name": m} for m in feedback.get("muscles_weak", [])]},
+        })
+
+    if feedback.get("note"):
         properties["Notes"] = {
             "rich_text": [{"text": {"content": feedback["note"]}}]
         }

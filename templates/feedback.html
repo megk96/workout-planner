@@ -33,7 +33,7 @@
             gap: 6px;
             margin-top: 10px;
         }
-        .mood-btn, .status-btn {
+        .mood-btn, .status-btn, .type-btn, .muscle-btn {
             border-radius: 5px;
             padding: 6px 12px;
             background: white;
@@ -47,12 +47,36 @@
             border-color: #4CAF50;
         }
 
-        /* Status button border colors */
+        .type-btn.active {
+            color: white;
+        }
+
+        .purple-row .type-btn {
+            border-color: #9b59b6;
+        }
+        .purple-row .type-btn.active {
+            background-color: #9b59b6;
+        }
+
+        .blue-row .type-btn {
+            border-color: #3498db;
+        }
+        .blue-row .type-btn.active {
+            background-color: #3498db;
+        }
+
+        .pink-row .muscle-btn {
+            border-color: #f8a7c2;
+        }
+        .pink-row .muscle-btn.active {
+            background-color: #f8a7c2;
+            color: white;
+        }
+
         .status-btn[data-status="Completed"] { border-color: #2ecc71; }
         .status-btn[data-status="Skipped"] { border-color: #e74c3c; }
         .status-btn[data-status="Rescheduled"] { border-color: #f39c12; }
 
-        /* Status button active fill */
         .status-btn.active[data-status="Completed"] {
             background-color: #2ecc71;
             color: white;
@@ -77,20 +101,25 @@
         <input type="hidden" name="video_id" value="{{ video_id }}">
         <input type="hidden" name="mood" id="mood-input">
         <input type="hidden" name="status" id="status-input" value="Completed">
+        <input type="hidden" name="types" id="type-input">
+        <input type="hidden" name="muscles_weak" id="muscle-input">
 
-        <!-- Mood Buttons -->
-        <label>Mood (select one or more):</label>
-        <div class="btn-group" id="mood-buttons">
-            {% for mood in [
-                "Frustrated", "Tired", "Disappointed", "Motivated", "Neutral", "Pumped",
-                "Proud", "Focused", "Unmotivated", "Calm", "Anxious", "Ecstatic",
-                "Lazy", "Stressed", "Grateful"
-            ] %}
-            <button type="button" class="mood-btn" data-mood="{{ mood }}">{{ mood }}</button>
+        <!-- Type of Workout -->
+        <label>Type of Workout:</label>
+        <div class="btn-group purple-row" id="type-buttons">
+            {% for t in ["Strength", "Stretch", "Stamina", "Stability"] %}
+            <button type="button" class="type-btn" data-type="{{ t }}">{{ t }}</button>
+            {% endfor %}
+        </div>
+        <div class="btn-group blue-row">
+            {% for t in ["Yoga", "Sports", "Swim", "HIIT"] %}
+            <button type="button" class="type-btn" data-type="{{ t }}">{{ t }}</button>
             {% endfor %}
         </div>
 
-        <!-- Status Buttons -->
+       
+
+        <!-- Status -->
         <label>Status:</label>
         <div class="btn-group" id="status-buttons">
             <button type="button" class="status-btn active" data-status="Completed">Completed</button>
@@ -98,15 +127,38 @@
             <button type="button" class="status-btn" data-status="Rescheduled">Rescheduled</button>
         </div>
 
-        <!-- Effort & Energy -->
-        <div id="effort-energy-section">
+        <!-- Effort & Effectiveness -->
+        <div id="completed-section">
+             <!-- Mood -->
+        <label>Mood (select one or more):</label>
+            <div class="btn-group" id="mood-buttons">
+                {% for mood in [
+                    "Frustrated", "Tired", "Disappointed", "Motivated", "Neutral", "Pumped",
+                    "Proud", "Focused", "Unmotivated", "Calm", "Anxious", "Ecstatic",
+                    "Lazy", "Stressed", "Grateful"
+                ] %}
+                <button type="button" class="mood-btn" data-mood="{{ mood }}">{{ mood }}</button>
+                {% endfor %}
+            </div>
+
+            <!-- Muscles Felt Weak -->
+            <label>Muscles Felt Weak (select any):</label>
+            <div class="btn-group pink-row" id="muscle-buttons">
+                {% for muscle in [
+                    "Abs", "Obliques", "Deep Core", "Lower Back", "Chest", "Back", "Shoulders", "Biceps", "Triceps",
+                    "Quads", "Hamstrings", "Glutes", "Calves", "Hip Stability", "Knee Stability",
+                    "Ankle Stability", "Shoulder Stability", "Neck Stability", "Grip/Forearms"
+                ] %}
+                <button type="button" class="muscle-btn" data-muscle="{{ muscle }}">{{ muscle }}</button>
+                {% endfor %}
+            </div>
             <label>Effort (1 = Too Easy, 10 = Maximum!)</label>
             <input type="range" name="effort" id="effort" min="1" max="10" value="5" oninput="document.getElementById('effortVal').textContent = this.value">
             <output id="effortVal">5</output>
 
-            <label>Energy (1 = Drained, 10 = Pumped AF!)</label>
-            <input type="range" name="energy" id="energy" min="1" max="10" value="5" oninput="document.getElementById('energyVal').textContent = this.value">
-            <output id="energyVal">5</output>
+            <label>Effectiveness (1 = Was that even a workout?, 10 = Could not finish/hit the right spots)</label>
+            <input type="range" name="effectiveness" id="effectiveness" min="1" max="10" value="5" oninput="document.getElementById('effectVal').textContent = this.value">
+            <output id="effectVal">5</output>
         </div>
 
         <!-- Notes -->
@@ -117,43 +169,73 @@
     </form>
 
     <script>
-        // Mood toggle logic
+        // Mood logic
         const selectedMoods = new Set();
         const moodInput = document.getElementById("mood-input");
         document.querySelectorAll(".mood-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 const mood = btn.dataset.mood;
                 btn.classList.toggle("active");
-                if (selectedMoods.has(mood)) {
-                    selectedMoods.delete(mood);
-                } else {
-                    selectedMoods.add(mood);
-                }
+                selectedMoods.has(mood) ? selectedMoods.delete(mood) : selectedMoods.add(mood);
                 moodInput.value = Array.from(selectedMoods).join(",");
             });
         });
-
-        // Status selection
+    
+        // Type logic
+        const selectedTypes = new Set();
+        const typeInput = document.getElementById("type-input");
+        document.querySelectorAll(".type-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const type = btn.dataset.type;
+                btn.classList.toggle("active");
+                selectedTypes.has(type) ? selectedTypes.delete(type) : selectedTypes.add(type);
+                typeInput.value = Array.from(selectedTypes).join(",");
+            });
+        });
+    
+        // Muscle logic
+        const selectedMuscles = new Set();
+        const muscleInput = document.getElementById("muscle-input");
+        document.querySelectorAll(".muscle-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const muscle = btn.dataset.muscle;
+                btn.classList.toggle("active");
+                selectedMuscles.has(muscle) ? selectedMuscles.delete(muscle) : selectedMuscles.add(muscle);
+                muscleInput.value = Array.from(selectedMuscles).join(",");
+            });
+        });
+    
+        // Status logic
         const statusButtons = document.querySelectorAll(".status-btn");
         const statusInput = document.getElementById("status-input");
-        const effortEnergySection = document.getElementById("effort-energy-section");
-
+        const completedSection = document.getElementById("completed-section");
+    
+        function clearSlidersIfNotCompleted() {
+            if (statusInput.value !== "Completed") {
+                document.getElementById("effort").value = "";
+                document.getElementById("effectiveness").value = "";
+                document.getElementById("effortVal").textContent = "";
+                document.getElementById("effectVal").textContent = "";
+            }
+        }
+    
+        // Attach single event handler to status buttons
         statusButtons.forEach(btn => {
             btn.addEventListener("click", () => {
-                // Clear others
                 statusButtons.forEach(b => b.classList.remove("active"));
                 btn.classList.add("active");
                 statusInput.value = btn.dataset.status;
-
-                // Toggle sliders
-                effortEnergySection.style.display = (btn.dataset.status === "Completed") ? "block" : "none";
+    
+                completedSection.style.display = (btn.dataset.status === "Completed") ? "block" : "none";
+                clearSlidersIfNotCompleted();
             });
         });
-
-        // Initial slider visibility based on default
+    
+        // Handle default view on load
         if (statusInput.value !== "Completed") {
-            effortEnergySection.style.display = "none";
+            completedSection.style.display = "none";
+            clearSlidersIfNotCompleted();
         }
-    </script>
+    </script>    
 </body>
 </html>

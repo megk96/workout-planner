@@ -4,13 +4,17 @@ from dotenv import load_dotenv
 
 from email_utils import load_today_workout
 from llm import compose_email
+from notion_integration import update_plan_workout_status
+import json
+
+env = os.getenv("ENVIRONMENT", "dev").upper()
 
 load_dotenv()
 
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-SENDER_EMAIL = os.getenv("SENDER_EMAIL")
-RECEIVER_EMAIL = os.getenv("RECEIVER_EMAIL")
-FEEDBACK_URL_BASE = os.getenv("FEEDBACK_URL_BASE")
+RESEND_API_KEY = os.getenv(f"RESEND_API_KEY_{env}") 
+SENDER_EMAIL = os.getenv("SENDER_EMAIL") 
+RECEIVER_EMAIL = os.getenv(f"RECEIVER_EMAIL_{env}")
+FEEDBACK_URL_BASE = os.getenv(f"FEEDBACK_URL_BASE_{env}")
 
 def send_email(recipient, subject, body, youtube_url=None, video_id=None):
     url = "https://api.resend.com/emails"
@@ -58,20 +62,26 @@ def send_email(recipient, subject, body, youtube_url=None, video_id=None):
         res = requests.post(url, headers=headers, json=payload)
         res.raise_for_status()
         print(f"✅ Email sent to {recipient}")
+        try:
+            with open("workout_plans/current_plan.json") as f:
+                plan_data = json.load(f)
+            plan_id = plan_data["plan_id"]
+            video_id = workout["video_id"]
+            update_plan_workout_status(plan_id, video_id, "sent")
+        except Exception as e:
+            print(f"❌ Status sent updation failed: {e}")
     except Exception as e:
         print(f"❌ Email failed: {e}")
 
 
 if __name__ == "__main__":
     workout = load_today_workout()
-
-    # Optional: update prompt in llm.py for context
     email = compose_email(workout)
-
     send_email(
-        recipient=RECEIVER_EMAIL,
-        subject=email["subject"],
-        body=email["body"],
-        youtube_url=workout["youtube_url"],
-        video_id=workout["video_id"]
-    )
+            recipient=RECEIVER_EMAIL,
+            subject=email["subject"],
+            body=email["body"],
+            youtube_url=workout["youtube_url"],
+            video_id=workout["video_id"]
+        )
+    

@@ -22,10 +22,11 @@ def feedback():
                 "effort": int(request.form.get("effort", 0) or 0),
                 "effectiveness": int(request.form.get("effectiveness", 0) or 0),
             })
-
+        print(feedback_data)
+        update_feedback(feedback_data["video_id"], feedback_data)
+        return "✅ Feedback submitted. Notion updated."
         try:
-            update_feedback(feedback_data["video_id"], feedback_data)
-            return "✅ Feedback submitted. Notion updated."
+            pass
         except ValueError as e:
             return f"❌ Error: {str(e)}"
         except Exception as e:
